@@ -1,0 +1,61 @@
+<html>
+	<body>
+		Select text color: <input id = "c1" class="jscolor" onchange="changeColor(this.jscolor)" value="000000">
+		<textarea id = "t" style = "height:100%;width:100%">
+		</textarea>
+	</body>
+	<script src="scripts/RTCMultiConnection.min.js"></script>
+	<script src="scripts/socket.io.js"></script>
+	<script src="scripts/jscolor.min.js"></script>
+
+	<script>
+		var t = document.getElementById("t");	
+		var connection = new RTCMultiConnection();
+		
+		connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
+		connection.session = {
+			data:true
+		};
+		
+		connection.checkPresence('room-d', function(isRoomExist, roomid) {
+			if (isRoomExist === true) {
+				connection.join(roomid);
+			} else {
+				connection.open(roomid);
+			}
+		});
+		
+		t.onkeydown = function() {
+			var key = event.keyCode || event.charCode;
+			if( key == 8 || key == 46 ){
+				setTimeout(function(){ 
+					var string = t.value;
+					if(string.length <1){
+						return;
+					}
+					sendString(string);
+				}, 500);
+			}
+		};
+		
+		t.onkeypress = function(e){
+			var key = String.fromCharCode(e.keyCode);
+			var string = t.value+key;
+			sendString(string);
+		};
+		connection.onmessage = function(event) {
+			<!-- console.log("received"); -->
+			var string = event.data;
+			t.value = string;
+		};
+		
+		function sendString(str){
+			connection.send(str);
+			<!-- console.log("sent"); -->
+		}
+		
+		function changeColor(jscolor){
+			document.getElementById("t").style.color="#"+jscolor;
+		}
+	</script>
+</html>
